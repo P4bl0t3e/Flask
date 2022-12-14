@@ -1,7 +1,7 @@
-from flask import Flask, render_template, url_for
+from flask import Flask, render_template, url_for, redirect
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin, login_user, LoginManager, logout_user, login_required, current_user
-from flask_wtf import *
+from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField
 from wtforms.validators import InputRequired, Length, ValidationError
 from flask_bcrypt import Bcrypt
@@ -16,6 +16,10 @@ app.config['SECRET_KEY']  = 'thisisascrecretkey'
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'Login'
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
 
 
 class User(db.Model, UserMixin):
@@ -58,6 +62,12 @@ def home():
 @login_required
 def dashboard():
     return render_template('dashboard.html')
+
+@app.route('/logout', methods=['GET', 'POST'])
+@login_required
+def  logout():
+    logout_user()
+    return redirect(url_for('login'))
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
